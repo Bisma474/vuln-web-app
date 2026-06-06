@@ -14,5 +14,8 @@ dependencies = [
     "itsdangerous>=2.0.0",
 ]
 
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
 [project.optional-dependencies]
 dev = ["pytest"]
