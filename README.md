@@ -243,3 +243,5 @@ Run the app from the project root with `uv run backend/app/main.py`. The entry p
 
 **Database seems corrupted or stale**
 Delete `vulnerable_app.db` from the project root and restart the app. The database is recreated automatically on startup.
+
+---
