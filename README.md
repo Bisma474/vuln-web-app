@@ -75,29 +75,6 @@ This repository ships in several tagged releases. The versions below are the mai
 
 The incremental tags between them (**v0.1.2 – v0.1.7**) each close one additional vulnerability — see the [Bug Fixes](#bug-fixes) table for the version-by-version mapping. The feature-enhancement tags build on top of v1.0.0: **v1.0.1** adds the password strength meter, **v1.0.2** the User Profile Page, **v1.0.3** Continue with Google, **v1.0.4** Email Verification on Signup, **v1.0.5** Account Lockout, **v1.0.6** Email OTP 2FA, and **v1.0.7** MFA via Authenticator App (TOTP).
 
-### Version History (every tag)
-
-Every release tag, in order, and exactly what it introduced — each bug fix and each feature is traceable to the tag that shipped it.
-
-| Tag | Type | Change | Details |
-|-----|------|--------|---------|
-| **v0.1.0** | Baseline | Fully vulnerable app — **all 8 vulnerabilities open** | The starting point for fixing from scratch |
-| **v0.1.1** | Feature + Fix | **Dark Mode Toggle** + **VULN-5** Weak Password Storage (MD5 → bcrypt cost 12) | First feature and first vuln closed together |
-| **v0.1.2** | Bug Fix | **VULN-1** SQL Injection (string concatenation → parameterized queries) | `auth_service.py` |
-| **v0.1.3** | Bug Fix | **VULN-6** Exposed Database (unauthenticated `/download/db` → route removed) | `auth.py` |
-| **v0.1.4** | Bug Fix | **VULN-4** Session Hijacking (hardcoded secret → env-sourced `SECRET_KEY` + random fallback) | `main.py` |
-| **v0.1.5** | Bug Fix | **VULN-2** Stored XSS (unescaped dashboard username → HTML-escaped output) | `auth.py` |
-| **v0.1.6** | Bug Fix | **VULN-3** Reflected XSS (unescaped `/search` reflection → HTML-escaped output) | `auth.py` |
-| **v0.1.7** | Bug Fix | **VULN-7** No Rate Limiting (→ per-IP sliding-window POST limit, HTTP 429) | `core/rate_limit.py` + `main.py` |
-| **v1.0.0** | Bug Fix | **VULN-8** CSRF (→ per-session synchronizer-token middleware, HTTP 403) — **all 8 vulnerabilities now closed** | `core/csrf.py` + `main.py` + forms |
-| **v1.0.1** | Feature | **Password Strength Meter** (signup, frontend-only, advisory) | No schema change |
-| **v1.0.2** | Feature | **User Profile Page** (`/profile`: view info + change password) | No schema change |
-| **v1.0.3** | Feature | **Continue with Google** (OAuth 2.0 + OpenID Connect via Authlib) | 1st schema change (4 cols) |
-| **v1.0.4** | Feature | **Email Verification on Signup** (single-use 1-hour SMTP link) | 2nd schema change (3 cols) |
-| **v1.0.5** | Feature | **Account Lockout** (per-account lock after N failed logins) | 3rd schema change (2 cols) |
-| **v1.0.6** | Feature | **Email OTP 2FA** (opt-in 6-digit emailed code after password) | 4th schema change (5 cols) |
-| **v1.0.7** | Feature | **MFA via Authenticator App (TOTP)** (QR enrollment; TOTP wins over Email OTP; `segno` dep) | 5th schema change (3 cols) |
-
 ### Download the version you want
 
 **Option A — Download a release archive (no Git required)**
@@ -220,32 +197,6 @@ build the link. The real `.env` is **git-ignored** — never commit your secret;
 `.env.example` holds placeholders only.
 
 ---
-
-## Authenticator App (TOTP) — Setup (optional, no config required)
-
-As of **v1.0.7** a user can add **authenticator-app two-factor authentication**
-(RFC 6238 TOTP). Unlike Email OTP and Continue-with-Google, this needs **no
-SMTP and no Google credentials** — it works on a fresh clone out of the box:
-
-1. Log in and open **`/profile`** → the **Authenticator App (TOTP)** card.
-2. Click **Set up authenticator**, scan the QR with Google Authenticator / Authy
-   / 1Password (or type the shown key), then enter the current 6-digit code to
-   **confirm & enable**.
-3. On your next login, after your password you'll be asked for the current code
-   on **`/login/totp`**.
-
-It is **independent of Email OTP**; if both are enabled, **TOTP takes
-precedence** (no email is sent). The TOTP math is pure standard library; the one
-new dependency is **`segno`** (pure-Python, zero transitive deps) used only to
-render the QR image. Optional, non-secret tunables (`TOTP_ISSUER`,
-`TOTP_PERIOD_SECONDS`, `TOTP_SKEW_STEPS`) are documented in `.env.example`.
-
-> Lost your authenticator? This slice has no self-service recovery — an operator
-> clears `totp_secret` / `totp_enabled` on your `users` row (e.g.
-> `sqlite3 vulnerable_app.db "UPDATE users SET totp_secret=NULL, totp_enabled=0 WHERE username='you';"`).
-
----
-
 ## API Endpoints
 
 | Method | Endpoint | Description | Auth Required |
