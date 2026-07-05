@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: vuln-web-app
+    env: python
+    buildCommand: uv sync
+    startCommand: uv run backend/app/main.py
+    pythonVersion: 3.12
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: APP_BASE_URL
+        value: https://vuln-web-app.onrender.com
+      - key: SENDGRID_API_KEY
+        sync: false
+      - key: SENDGRID_FROM
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: TURNSTILE_SITE_KEY
+        sync: false
+      - key: TURNSTILE_SECRET_KEY
+        sync: false
+    autoDeploy: true
