@@ -103,6 +103,8 @@ async def signup_page(request: Request):
     page = page.replace("{{csrf_token}}", html.escape(token, quote=True))
     hibp_info = '<div class="hibp-notice">Your password is checked against the Have I Been Pwned breach database to prevent use of compromised credentials.</div>' if config.HIBP_ENABLED else ''
     page = page.replace('{{hibp_info}}', hibp_info)
+    secure_indicator = '🔒' if request.url.startswith('https://') else '🌐'
+    page = page.replace('{{secure_indicator}}', secure_indicator)
     return HTMLResponse(content=page)
 
 
@@ -223,6 +225,8 @@ async def login_page(request: Request):
     page = page.replace("{{csrf_token}}", html.escape(token, quote=True))
     hibp_info = '<div class="hibp-notice">Your password is checked against the Have I Been Pwned breach database to prevent use of compromised credentials.</div>' if config.HIBP_ENABLED else ''
     page = page.replace('{{hibp_info}}', hibp_info)
+    secure_indicator = '🔒' if request.url.startswith('https://') else '🌐'
+    page = page.replace('{{secure_indicator}}', secure_indicator)
     # CAPTCHA on Login (v2.0.0): render the Cloudflare Turnstile widget + script
     # only when both keys are configured; otherwise both placeholders collapse to
     # "" and the login page is byte-for-byte the pre-CAPTCHA page (graceful degrade).
@@ -400,6 +404,8 @@ async def profile_page(request: Request):
     page = page.replace("{{csrf_token}}", html.escape(token, quote=True))
     hibp_info = '<div class="hibp-notice">Your password is checked against the Have I Been Pwned breach database to prevent use of compromised credentials.</div>' if config.HIBP_ENABLED else ''
     page = page.replace('{{hibp_info}}', hibp_info)
+    secure_indicator = '🔒' if request.url.startswith('https://') else '🌐'
+    page = page.replace('{{secure_indicator}}', secure_indicator)
 
     # FIXED: Stored XSS closed -- escape every user-controlled value before
     # splicing (output encoding, same posture as the dashboard username).
@@ -469,6 +475,8 @@ async def login_otp_page(request: Request):
     page = page.replace("{{csrf_token}}", html.escape(token, quote=True))
     hibp_info = '<div class="hibp-notice">Your password is checked against the Have I Been Pwned breach database to prevent use of compromised credentials.</div>' if config.HIBP_ENABLED else ''
     page = page.replace('{{hibp_info}}', hibp_info)
+    secure_indicator = '🔒' if request.url.startswith('https://') else '🌐'
+    page = page.replace('{{secure_indicator}}', secure_indicator)
     return HTMLResponse(content=page)
 
 
@@ -676,6 +684,8 @@ async def login_totp_page(request: Request):
     page = page.replace("{{csrf_token}}", html.escape(token, quote=True))
     hibp_info = '<div class="hibp-notice">Your password is checked against the Have I Been Pwned breach database to prevent use of compromised credentials.</div>' if config.HIBP_ENABLED else ''
     page = page.replace('{{hibp_info}}', hibp_info)
+    secure_indicator = '🔒' if request.url.startswith('https://') else '🌐'
+    page = page.replace('{{secure_indicator}}', secure_indicator)
     return HTMLResponse(content=page)
 
 
