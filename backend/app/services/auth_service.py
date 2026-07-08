@@ -17,6 +17,7 @@ Closed vulnerabilities relevant to this file:
 
 import re
 import sqlite3
+import time
 
 from starlette.requests import Request
 from fastapi.responses import RedirectResponse, HTMLResponse, JSONResponse
@@ -305,6 +306,19 @@ def login(request: Request, username: str, password: str):
         request.session["user_id"] = user["id"]
         request.session["username"] = user["username"]
         request.session["email"] = user["email"]
+        # Record login event for history
+        login_at = time.time()
+        ip_address = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        conn = get_db()
+        try:
+            conn.execute(
+                "INSERT INTO user_login_events (user_id, login_at, ip_address, user_agent) VALUES (?, ?, ?, ?)",
+                (user["id"], login_at, ip_address, user_agent)
+            )
+            conn.commit()
+        finally:
+            conn.close()
         return JSONResponse(content={"success": True, "redirect": "/welcome"})
     else:
         # Wrong password. For an EXISTING account, count this toward the lockout

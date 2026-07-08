@@ -29,6 +29,7 @@ Closed vulnerabilities relevant to this file:
 
 import os
 import html
+import datetime
 import logging
 
 from fastapi import APIRouter, Form, Request
@@ -396,6 +397,27 @@ async def profile_page(request: Request):
     twofa_enabled = bool(row["two_factor_enabled"]) if row else False
     totp_enabled = bool(row["totp_enabled"]) if row else False
 
+    # Fetch login history for the user
+    conn = get_db()
+    try:
+        rows = conn.execute(
+            "SELECT login_at, ip_address, user_agent FROM user_login_events WHERE user_id=? ORDER BY login_at DESC LIMIT 10",
+            [user_id]
+        ).fetchall()
+        if rows:
+            items = []
+            for r in rows:
+                t = datetime.datetime.fromtimestamp(r[0]).strftime("%Y-%m-%d %H:%M:%S")
+                ip = html.escape(str(r[1]))
+                ua = html.escape(str(r[2]))
+                items.append(f"<tr><td>{t}</td><td>{ip}</td><td>{ua}</td></tr>")
+            html_table = "<table><thead><tr><th>Date & Time</th><th>IP Address</th><th>Device / Browser</th></tr></thead><tbody>" + "".join(items) + "</tbody></table>"
+            login_history = f'<section class="login-history"><h2>Login History</h2>{html_table}</section>'
+        else:
+            login_history = '<section class="login-history"><h2>Login History</h2><p>No login history available.</p></section>'
+    finally:
+        conn.close()
+
     with open(os.path.join(TEMPLATE_DIR, "profile.html"), "r") as f:
         page = f.read()
 
@@ -418,6 +440,7 @@ async def profile_page(request: Request):
         "{{email_configured}}", "1" if config.is_email_configured() else "0"
     )
     page = page.replace("{{totp_enabled}}", "1" if totp_enabled else "0")
+    page = page.replace("{{login_history}}", login_history)
 
     return HTMLResponse(content=page)
 

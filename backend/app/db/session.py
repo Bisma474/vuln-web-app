@@ -125,6 +125,18 @@ def init_db():
         )"""
     )
 
+    # Create login events table if it doesn't exist
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS user_login_events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            login_at REAL NOT NULL,
+            ip_address TEXT NOT NULL,
+            user_agent TEXT NOT NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )"""
+    )
+
     # Migrate older databases in place: add any missing OAuth columns. Note
     # that ALTER TABLE ADD COLUMN cannot carry a UNIQUE constraint in SQLite,
     # so a migrated `google_id` lacks the table-level UNIQUE; uniqueness is
