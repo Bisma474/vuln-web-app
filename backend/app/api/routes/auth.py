@@ -30,6 +30,7 @@ Closed vulnerabilities relevant to this file:
 import os
 import html
 import datetime
+import time
 import logging
 
 from fastapi import APIRouter, Form, Request
@@ -169,6 +170,19 @@ async def verify_email(request: Request):
         request.session["user_id"] = user["id"]
         request.session["username"] = user["username"]
         request.session["email"] = user["email"]
+        # Record login event for history
+        login_at = time.time()
+        ip_address = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        conn = get_db()
+        try:
+            conn.execute(
+                "INSERT INTO user_login_events (user_id, login_at, ip_address, user_agent) VALUES (?, ?, ?, ?)",
+                (user["id"], login_at, ip_address, user_agent)
+            )
+            conn.commit()
+        finally:
+            conn.close()
         return RedirectResponse(url="/welcome", status_code=302)
 
     # Expired / invalid: render a fixed, HTML-escaped outcome message. These
@@ -529,6 +543,19 @@ async def login_otp_post(request: Request, otp: str = Form("")):
         request.session["user_id"] = user["id"]
         request.session["username"] = user["username"]
         request.session["email"] = user["email"]
+        # Record login event for history
+        login_at = time.time()
+        ip_address = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        conn = get_db()
+        try:
+            conn.execute(
+                "INSERT INTO user_login_events (user_id, login_at, ip_address, user_agent) VALUES (?, ?, ?, ?)",
+                (user["id"], login_at, ip_address, user_agent)
+            )
+            conn.commit()
+        finally:
+            conn.close()
         return JSONResponse(content={"success": True, "redirect": "/welcome"})
 
     messages = {
@@ -739,6 +766,19 @@ async def login_totp_post(request: Request, code: str = Form("")):
         request.session["user_id"] = user["id"]
         request.session["username"] = user["username"]
         request.session["email"] = user["email"]
+        # Record login event for history
+        login_at = time.time()
+        ip_address = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        conn = get_db()
+        try:
+            conn.execute(
+                "INSERT INTO user_login_events (user_id, login_at, ip_address, user_agent) VALUES (?, ?, ?, ?)",
+                (user["id"], login_at, ip_address, user_agent)
+            )
+            conn.commit()
+        finally:
+            conn.close()
         return JSONResponse(content={"success": True, "redirect": "/welcome"})
 
     messages = {
@@ -835,7 +875,19 @@ async def google_callback(request: Request):
     request.session["user_id"] = user["id"]
     request.session["username"] = user["username"]
     request.session["email"] = user["email"]
-
+    # Record login event for history
+    login_at = time.time()
+    ip_address = request.client.host if request.client else "unknown"
+    user_agent = request.headers.get("user-agent", "unknown")
+    conn = get_db()
+    try:
+        conn.execute(
+            "INSERT INTO user_login_events (user_id, login_at, ip_address, user_agent) VALUES (?, ?, ?, ?)",
+            (user["id"], login_at, ip_address, user_agent)
+        )
+        conn.commit()
+    finally:
+        conn.close()
     return RedirectResponse(url="/welcome", status_code=302)
 
 
