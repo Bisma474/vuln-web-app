@@ -426,9 +426,9 @@ async def profile_page(request: Request):
                 ua = html.escape(str(r[2]))
                 items.append(f"<tr><td>{t}</td><td>{ip}</td><td>{ua}</td></tr>")
             html_table = "<table><thead><tr><th>Date & Time</th><th>IP Address</th><th>Device / Browser</th></tr></thead><tbody>" + "".join(items) + "</tbody></table>"
-            login_history = f'<section class="login-history"><h2>Login History</h2>{html_table}</section>'
+            login_history = html_table
         else:
-            login_history = '<section class="login-history"><h2>Login History</h2><p>No login history available.</p></section>'
+            login_history = '<p>No login history available.</p>'
     finally:
         conn.close()
 
@@ -949,6 +949,19 @@ async def qr_status(request: Request, token: str = ""):
         request.session["user_id"] = identity["user_id"]
         request.session["username"] = identity["username"]
         request.session["email"] = identity["email"]
+        # Record login event for history
+        login_at = time.time()
+        ip_address = request.client.host if request.client else "unknown"
+        user_agent = request.headers.get("user-agent", "unknown")
+        conn = get_db()
+        try:
+            conn.execute(
+                "INSERT INTO user_login_events (user_id, login_at, ip_address, user_agent) VALUES (?, ?, ?, ?)",
+                (identity["user_id"], login_at, ip_address, user_agent)
+            )
+            conn.commit()
+        finally:
+            conn.close()
         return JSONResponse(content={"status": "approved", "redirect": "/welcome"})
     return JSONResponse(content={"status": st})
 
